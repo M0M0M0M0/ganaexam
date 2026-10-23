@@ -1,0 +1,36 @@
+@baseUrl = http://localhost:5080
+
+### 1. generatedescription
+POST {{baseUrl}}/api/products/1/generatedescription
+
+### 2. analyzereview
+POST {{baseUrl}}/api/reviews/analyze
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "customerName": "Nguyen Van A",
+  "content": "Battery is great but the phone gets hot when gaming.",
+  "rating": 4
+}
+
+### 3a. shoppingassistant
+POST {{baseUrl}}/api/assistant/chat
+Content-Type: application/json
+
+{ "sessionId": "demo-session-1", "message": "Which phone has the biggest battery?" }
+
+### 3b. shoppingassistant (follow-up, same sessionId)
+POST {{baseUrl}}/api/assistant/chat
+Content-Type: application/json
+
+{ "sessionId": "demo-session-1", "message": "How much does it cost?" }
+
+### 3c. shoppingassistant (unrelated -> refuse)
+POST {{baseUrl}}/api/assistant/chat
+Content-Type: application/json
+
+{ "sessionId": "demo-session-1", "message": "What is the weather in Hanoi today?" }
+
+### 4. getreviewreport
+GET {{baseUrl}}/api/reports/reviews

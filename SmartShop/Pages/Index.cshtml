@@ -1,0 +1,167 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Products";
+}
+
+<div class="page-head">
+    <div>
+        <div class="eyebrow">Catalog</div>
+        <h1>Products</h1>
+        <p class="subtitle">Let Gemini write a short, professional description for any product in one click.</p>
+    </div>
+    <button type="button" id="toggle-add" class="btn" aria-expanded="false" aria-controls="add-panel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Add product
+    </button>
+</div>
+
+<section id="add-panel" class="card add-panel" hidden>
+    <div class="card-head">
+        <div>
+            <h2>New product</h2>
+            <p>Separate features with commas. You can generate the description with Gemini after saving.</p>
+        </div>
+    </div>
+    <form id="add-form" class="card-body form-grid">
+        <div class="field">
+            <label for="productName">Product name</label>
+            <input id="productName" name="productName" required maxlength="128" placeholder="e.g. iPhone 17" />
+        </div>
+        <div class="field">
+            <label for="category">Category</label>
+            <input id="category" name="category" required maxlength="64" list="categories" placeholder="Phone, Laptop, Accessory..." />
+            <datalist id="categories">
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c"></option>
+                }
+            </datalist>
+        </div>
+        <div class="field">
+            <label for="price">Price (VND)</label>
+            <input id="price" name="price" type="number" required min="1" step="1" placeholder="e.g. 24990000" />
+        </div>
+        <div class="field full">
+            <label for="features">Features</label>
+            <textarea id="features" name="features" required maxlength="512" rows="2" placeholder="6.3 inch OLED, A19 chip, 48MP camera"></textarea>
+        </div>
+        <div class="form-actions full">
+            <button type="submit" class="btn">Save product</button>
+            <button type="button" id="cancel-add" class="btn ghost">Cancel</button>
+            <div id="add-result" class="alert" role="status"></div>
+        </div>
+    </form>
+</section>
+
+<div class="products">
+    @foreach (var p in Model.Products)
+    {
+        <article class="card product" data-id="@p.ProductId">
+            <div class="product-media @Ui.CategoryClass(p.Category)">
+                <span class="tag">@p.Category</span>
+                <partial name="_CategoryIcon" model="(p.Category, 56)" />
+            </div>
+            <div class="product-body">
+                <div class="product-title">
+                    <h2>@p.ProductName</h2>
+                    <span class="price">@Ui.Vnd(p.Price)</span>
+                </div>
+                <div class="chips">
+                    @foreach (var feature in Ui.SplitFeatures(p.Features))
+                    {
+                        <span class="chip">@feature</span>
+                    }
+                </div>
+                @if (string.IsNullOrWhiteSpace(p.Description))
+                {
+                    <p class="description placeholder">No description yet.</p>
+                }
+                else
+                {
+                    <p class="description filled">@p.Description</p>
+                }
+                <button type="button" class="btn ai block gen-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>
+                    <span>@(string.IsNullOrWhiteSpace(p.Description) ? "Generate description" : "Regenerate description")</span>
+                </button>
+            </div>
+        </article>
+    }
+</div>
+
+@section Scripts {
+<script>
+const addPanel = document.getElementById('add-panel');
+const addForm = document.getElementById('add-form');
+const addResult = document.getElementById('add-result');
+const toggleAdd = document.getElementById('toggle-add');
+
+function setAddPanel(open) {
+    addPanel.hidden = !open;
+    toggleAdd.setAttribute('aria-expanded', String(open));
+    if (open) document.getElementById('productName').focus();
+    else { addForm.reset(); addResult.className = 'alert'; }
+}
+toggleAdd.addEventListener('click', () => setAddPanel(addPanel.hidden));
+document.getElementById('cancel-add').addEventListener('click', () => setAddPanel(false));
+
+addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const button = addForm.querySelector('button[type=submit]');
+    const data = Object.fromEntries(new FormData(addForm));
+    data.price = Number(data.price);
+    button.disabled = true;
+    try {
+        const res = await fetch('/api/products', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        });
+        const body = await res.json();
+        if (!res.ok) {
+            const errors = body.errors ? Object.values(body.errors).flat().join(' ') : '';
+            throw new Error(errors || body.detail || body.title || res.statusText);
+        }
+        addResult.className = 'alert show success';
+        addResult.textContent = `Added "${body.productName}".`;
+        setTimeout(() => location.reload(), 900);
+    } catch (err) {
+        addResult.className = 'alert show error';
+        addResult.textContent = err.message;
+        button.disabled = false;
+    }
+});
+
+const sparkle = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>';
+
+document.querySelectorAll('.gen-btn').forEach(btn => btn.addEventListener('click', async () => {
+    const card = btn.closest('.product');
+    const desc = card.querySelector('.description');
+    const label = btn.querySelector('span');
+
+    btn.disabled = true;
+    btn.firstElementChild.outerHTML = '<span class="spinner"></span>';
+    label.textContent = 'Writing...';
+    desc.className = 'description placeholder';
+    desc.textContent = 'Gemini is writing the description...';
+    try {
+        const res = await fetch(`/api/products/${card.dataset.id}/generatedescription`, { method: 'POST' });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.detail || body.title || res.statusText);
+        desc.className = 'description filled';
+        desc.textContent = body.description;
+        const meta = document.createElement('em');
+        meta.className = 'desc-meta';
+        meta.textContent = `${body.wordCount} words · saved`;
+        desc.appendChild(meta);
+        label.textContent = 'Regenerate description';
+    } catch (err) {
+        desc.className = 'description error';
+        desc.textContent = err.message;
+        label.textContent = 'Try again';
+    } finally {
+        btn.disabled = false;
+        btn.querySelector('.spinner').outerHTML = sparkle;
+    }
+}));
+</script>
+}

@@ -1,0 +1,94 @@
+{
+  "info": {
+    "name": "SmartShop - Gemini (SET01)",
+    "description": "APIs of the Smart Shop exam. Run the app first (http://localhost:5080).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5080" },
+    { "key": "sessionId", "value": "demo-session-1" }
+  ],
+  "item": [
+    {
+      "name": "1. generatedescription",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/products/1/generatedescription"
+      }
+    },
+    {
+      "name": "2. analyzereview",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/reviews/analyze",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": 1,\n  \"customerName\": \"Nguyen Van A\",\n  \"content\": \"Battery is great but the phone gets hot when gaming.\",\n  \"rating\": 4\n}"
+        }
+      }
+    },
+    {
+      "name": "3a. shoppingassistant - question",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/assistant/chat",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"message\": \"Which phone has the biggest battery?\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3b. shoppingassistant - follow-up",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/assistant/chat",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"message\": \"How much does it cost?\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3c. shoppingassistant - unrelated (must refuse)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/assistant/chat",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"message\": \"What is the weather in Hanoi today?\"\n}"
+        }
+      }
+    },
+    {
+      "name": "4. getreviewreport",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/reports/reviews"
+      }
+    },
+    {
+      "name": "Error - product not found (404)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/products/999/generatedescription"
+      }
+    },
+    {
+      "name": "Error - invalid review body (400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/reviews/analyze",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": 1,\n  \"customerName\": \"\",\n  \"content\": \"\",\n  \"rating\": 9\n}"
+        }
+      }
+    }
+  ]
+}

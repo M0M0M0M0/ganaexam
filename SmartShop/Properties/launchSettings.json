@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "SmartShop": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "Reports",
+      "applicationUrl": "http://localhost:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
