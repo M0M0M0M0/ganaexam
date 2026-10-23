@@ -40,7 +40,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 if (string.IsNullOrWhiteSpace(app.Configuration[$"{GeminiOptions.SectionName}:ApiKey"]))
-    app.Logger.LogWarning("Gemini:ApiKey is not set. AI endpoints will return 503 until it is configured (see README.md).");
+    app.Logger.LogWarning("Gemini:ApiKey is not set.");
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

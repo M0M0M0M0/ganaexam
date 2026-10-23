@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "SmartShop - Gemini (SET01)",
-    "description": "APIs of the Smart Shop exam. Run the app first (http://localhost:5080).",
+    "description": "Smart Shop APIs",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

@@ -3,7 +3,7 @@ namespace SmartShop.Services.Gemini;
 public class GeminiException(string message, Exception? inner = null) : Exception(message, inner);
 
 public class GeminiNotConfiguredException()
-    : GeminiException("Gemini API key is not configured. Set it with 'dotnet user-secrets set \"Gemini:ApiKey\" \"<key>\"' or the environment variable Gemini__ApiKey.");
+    : GeminiException("Gemini API key is not configured.");
 
 public class GeminiQuotaExceededException(TimeSpan? retryAfter)
     : GeminiException("Gemini quota exceeded (HTTP 429). Please try again later.")

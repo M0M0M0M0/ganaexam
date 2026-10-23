@@ -51,12 +51,11 @@
     <div class="card-head">
         <div>
             <h2>Reviews by product</h2>
-            <p>Products without reviews are not listed.</p>
         </div>
     </div>
     @if (Model.Rows.Count == 0)
     {
-        <p class="empty">No reviews yet. Add the first one below.</p>
+        <p class="empty">No reviews yet.</p>
     }
     else
     {
